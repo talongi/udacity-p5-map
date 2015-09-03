@@ -3,22 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Neighborhood Map</title>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/styles.css" />
 
 </head>
 <body>
-    <form data-bind="submit: updateResults">
-        <p>Search: <input type="text" data-bind="value: searchTerm" /> <button type="button" data-bind="click: updateResults">Submit</button></p>
-    </form>
+    <div class="container">
+        <h1>My Neighborhood Map</h1>
 
-    <ul id="resultsList">
-        <h1>Results</h1>
-    </ul>
+        <form data-bind="submit: updateList">
+            <p>Filter: <input type="text" data-bind="textInput: searchTerm, event: { keyup: updateList }"  />
+            <button data-bind="click: updateList">Submit</button></p>
+        </form>
 
-    <div id="mapDiv"></div>
+        <h2>Results</h2>
+        <select multiple="multiple" size="5" id="resultsList" data-bind="options: results">
+        </select>
 
-    <script src="http://maps.google.com/maps/api/js?sensor=true"></script>
-    <script src="lib/knockout-3.2.0.js"></script>
-    <script src="js/viewModel.js"></script>
+        <h2>Map View</h2>
+
+        <div id="mapDiv"></div>
+
+        <script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+        <script src="lib/knockout-3.2.0.js"></script>
+        <script src="js/viewModel.js"></script>
+    </div>
 </body>
 </html>

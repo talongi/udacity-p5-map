@@ -1,7 +1,36 @@
 function Model() {
 
 	var self = this;
-	//Define stuff to hold information
+
+	//Hardcoded list of locations
+	self.locations = [
+	{
+		name: "Earl's Beer + Cheese",
+		lat: 40.7873751,
+		lng: -73.9516333,
+		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-275-beer.png'
+	},{
+		name: "Dough Loco",
+		lat: 40.787898,
+		lng: -73.9540978,
+		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-273-cake.png'
+	},{
+		name: "Cooper Hewitt Smithsonian Design Museum",
+		lat: 40.7843958,
+		lng: -73.9578732,
+		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-90-building.png'
+	},{
+		name: "Conservatory Garden",
+		lat: 40.793778,
+		lng:  -73.952454,
+		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-311-flower.png'
+	},{
+		name: "ABV",
+		lat: 40.786996,
+		lng:  -73.950662,
+		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-277-cutlery.png'
+	}
+	];
 
 	//Set the home location coordinates to initialize the map here
 	self.home = [40.7875090,-73.9529460];
@@ -18,18 +47,37 @@ function ViewModel() {
 
     var self = this;
 
-    /* Define observables here */
-    self.searchTerm = ko.observable("Enter places here!");
+    //Set variable to track which map marker is currently selected
+	var markerBouncing = null;
 
-     self.updateResults = function(){
-    	ko.computed(function(){
-    		console.log("computed");
-    	}, self);
-    }
+    /* Define observables here */
+    self.searchTerm = ko.observable("Type here to filter!");
+
+    //Take in the locations data object, put names into an array, push the names array into an observable array
+    self.initResults = function(locations) {
+	    self.initResultsList = [];
+	    for (i = 0; i < locations.length; i++) {
+	    	var item = locations[i].name;
+	    	self.initResultsList.push(item);
+	    };
+
+	    self.results = ko.observableArray(self.initResultsList.slice(0));
+	}
+
+	self.initResults(MODEL.locations);
+
+	self.updateList = function() {
+		if (self.initResultsList.indexOf(self.searchTerm()) > -1) {
+
+			self.results.removeAll();
+			self.results.push(self.searchTerm());
+		} else if (self.initResultsList.indexOf(self.searchTerm()) == -1) {
+			self.results(self.initResultsList.slice(0));
+		};
+	}.bind(this);
+
 
     /* Define and use Google Map objects here */
-
-    self.latlng = new google.maps.LatLng(MODEL.home[0],MODEL.home[1]);
 
     //This function takes in coordinates, converts coordinates to a google map lat and long object, sets the map options, creates a map object, and displays the map in a div on the page.
 	function showMap(latlng) {
@@ -47,18 +95,39 @@ function ViewModel() {
 	  return map;
 	}
 
+	//Set the starting coordinates to the home location in the data model
+    self.latlng = new google.maps.LatLng(MODEL.home[0],MODEL.home[1]);
+
+	//Intialize the map using the home location Google maps latlan object
 	self.map = showMap(self.latlng);
 
 	//This function is used to create new map markers
-	function addMarker(map, latlong, title, content) {
+	function addMarker(map, latlong, title, content, icon) {
 	  var markerOptions = {
 	    position: latlong,
 	    map: map,
 	    title: title,
-	    clickable: true
+	    animation: google.maps.Animation.DROP,
+	    clickable: true,
+	    icon: icon
 	  };
 
+		 //Function to toggle the bounce anitmation of marker on click
+
+		function toggleBounce() {
+		  if (markerBouncing) {
+		    markerBouncing.setAnimation(null);
+		  }
+		  if (markerBouncing != marker) {
+		  	marker.setAnimation(google.maps.Animation.BOUNCE);
+		  	markerBouncing = marker;
+		  } else {
+		    markerBouncing = null;
+		  }
+		};
+
 	  var marker = new google.maps.Marker(markerOptions);
+	  marker.addListener('click', toggleBounce);
 
 	  var infoWindowOptions = {
 	    content: content,
@@ -74,67 +143,30 @@ function ViewModel() {
 	  return marker;
 	}
 
+
+
     /* Create other functions to communicate with Model, Observables, and APIs */
 
- 	//Function to get zipcode for call to 3rd party OpenTable API
-    function getZipCode(coords) {
 
-	    var geocoder = new google.maps.Geocoder();
-	    //Ping Google geocode API with lat and long for reverse lookup
-	    geocoder.geocode({'latLng': coords}, function(results, status){
-	      if (status == google.maps.GeocoderStatus.OK){
-	        if (results[0]) {
-
-	          //Look for zip code in results array
-	          var zip = '';
-	          for (var i=0, len=results[0].address_components.length; i<len; i++) {
-	            var ac = results[0].address_components[i];
-	            if (ac.types.indexOf('postal_code') >= 0) zip = ac.long_name;
-	          }
-	          if (zip != '') {
-	            getRestaurantsNearby(zip);
-	          }
-	        }
-	      } else {
-	        alert("Geocoder failed due to: " + status);
-	      	}
-	    });
-	}
-
-
-	function getRestaurantsNearby(zipcode) {
-	  var url = "http://opentable.herokuapp.com/api/restaurants?zip="+zipcode+"&callback=ViewModel.updateRestaurantList";
-	  var newScriptElement = document.createElement("script");
-	  newScriptElement.setAttribute("src", url);
-	  newScriptElement.setAttribute("id", "jsonp");
-	  var oldScriptElement = document.getElementById("jsonp");
-	  var head = document.getElementsByTagName("head")[0];
-	  if (oldScriptElement == null) {
-	    head.appendChild(newScriptElement);
-	  } else {
-	    head.replaceChild(newScriptElement, oldScriptElement);
-	  }
-
-	}
-
-	self.updateRestaurantList = function(restaurants) {
-	  if (restaurants.restaurants.length < 1) {
-	    return alert("Sorry, no restaurants are using Open Table in your area. :(");
-	  }
-	  for (var i = 0; i < restaurants.restaurants.length; i++) {
-	    var restaurant = restaurants.restaurants[i];
-	    var googleLatAndLong = new google.maps.LatLng(restaurant.lat,restaurant.lng);
-	    //Add markers to list
-	    var marker = addMarker(self.map, googleLatAndLong, restaurant.name, restaurant.name);
+	self.updateMap = function(data) {
+	  for (var i = 0; i < data.length; i++) {
+	    var location = data[i];
+	    var googleLatAndLong = new google.maps.LatLng(location.lat,location.lng);
+	    var windowContent = location.name;
+	    //Create and add markers to map
+	    var marker = addMarker(self.map, googleLatAndLong, location.name, windowContent, location.icon);
+	    //Add marker to data model
 	    MODEL.markers.push(marker);
-	    console.log(MODEL.markers);
 	  }
 	}
 
-	getZipCode(self.latlng);
+	//Initialize the map with a list of locations hardcoded in data model
+	self.updateMap(MODEL.locations);
 
 }
 
 var ViewModel = new ViewModel();
+
+
 
 ko.applyBindings(ViewModel);
