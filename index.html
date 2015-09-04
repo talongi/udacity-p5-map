@@ -11,13 +11,13 @@
     <div class="container">
         <h1>My Neighborhood Map</h1>
 
-        <form data-bind="submit: updateList">
-            <p>Filter: <input type="text" data-bind="textInput: searchTerm, event: { keyup: updateList }"  />
-            <button data-bind="click: updateList">Submit</button></p>
+        <form data-bind="submit: updateListAndMap">
+            <p>Filter: <input type="text" data-bind="textInput: searchTerm, event: { keyup: updateListAndMap }"  />
         </form>
 
-        <h2>Results</h2>
-        <select multiple="multiple" size="5" id="resultsList" data-bind="options: results">
+        <h2>List View</h2>
+        <select multiple="multiple" size="5" id="resultsList" data-bind="options: results, selectedOptions: selectedLocations">
+
         </select>
 
         <h2>Map View</h2>

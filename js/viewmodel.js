@@ -51,31 +51,48 @@ function ViewModel() {
 	var markerBouncing = null;
 
     /* Define observables here */
-    self.searchTerm = ko.observable("Type here to filter!");
+
+    //Observable for the search term
+    self.searchTerm = ko.observable("");
+
+    //Observable to track what location is currently selected in the list view, nothing selected by default
+    self.selectedLocations = ko.observableArray();
 
     //Take in the locations data object, put names into an array, push the names array into an observable array
     self.initResults = function(locations) {
 	    self.initResultsList = [];
+	    self.searchList = [];
 	    for (i = 0; i < locations.length; i++) {
 	    	var item = locations[i].name;
 	    	self.initResultsList.push(item);
+	    	//Create lower case version for case insensitive search
+	    	self.searchList.push(item.toLowerCase());
 	    };
 
+	    //Create observable array to populate locations list view
 	    self.results = ko.observableArray(self.initResultsList.slice(0));
 	}
 
 	self.initResults(MODEL.locations);
 
-	self.updateList = function() {
-		if (self.initResultsList.indexOf(self.searchTerm()) > -1) {
-
+	self.updateListAndMap = function() {
+		if (self.searchList.indexOf(self.searchTerm().toLowerCase()) > -1) {
 			self.results.removeAll();
-			self.results.push(self.searchTerm());
-		} else if (self.initResultsList.indexOf(self.searchTerm()) == -1) {
+			self.results.push(self.initResultsList[self.searchList.indexOf(self.searchTerm().toLowerCase())]);
+			MODEL.markers.forEach(function (item, index, array) {
+				if (index != self.searchList.indexOf(self.searchTerm().toLowerCase())) {
+					item.setVisible(false);
+				};
+			});
+		} else if (self.searchList.indexOf(self.searchTerm().toLowerCase()) == -1) {
 			self.results(self.initResultsList.slice(0));
+			MODEL.markers.forEach(function (item, index, array) {
+				if (!item.getVisible()) {
+					item.setVisible(true);
+				};
+			});
 		};
 	}.bind(this);
-
 
     /* Define and use Google Map objects here */
 
@@ -143,12 +160,14 @@ function ViewModel() {
 	  return marker;
 	}
 
-
+	self.selectMarkerFromList = function() {
+		console.log("Selected");
+	}
 
     /* Create other functions to communicate with Model, Observables, and APIs */
 
 
-	self.updateMap = function(data) {
+	self.initMap = function(data) {
 	  for (var i = 0; i < data.length; i++) {
 	    var location = data[i];
 	    var googleLatAndLong = new google.maps.LatLng(location.lat,location.lng);
@@ -161,7 +180,7 @@ function ViewModel() {
 	}
 
 	//Initialize the map with a list of locations hardcoded in data model
-	self.updateMap(MODEL.locations);
+	self.initMap(MODEL.locations);
 
 }
 
