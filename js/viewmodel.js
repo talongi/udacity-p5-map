@@ -50,6 +50,9 @@ function ViewModel() {
     //Set variable to track which map marker is currently selected
 	var markerBouncing = null;
 
+	//Set variable to track which infowindow is currently open
+	var openInfoWindow = null;
+
     /* Define observables here */
 
     //Observable for the search term
@@ -129,6 +132,22 @@ function ViewModel() {
 	    icon: icon
 	  };
 
+	  var marker = new google.maps.Marker(markerOptions);
+	  marker.addListener('click', toggleBounce);
+
+	  var infoWindowOptions = {
+	    content: content,
+	    position: latlong
+	  };
+
+	  var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+
+	  google.maps.event.addListener(marker, "click", function() {
+	    if (openInfoWindow) openInfoWindow.close();
+	    openInfoWindow = infoWindow;
+	    infoWindow.open(map, marker);
+	  });
+
 		 //Function to toggle the bounce anitmation of marker on click
 
 		function toggleBounce() {
@@ -143,25 +162,22 @@ function ViewModel() {
 		  }
 		};
 
-	  var marker = new google.maps.Marker(markerOptions);
-	  marker.addListener('click', toggleBounce);
-
-	  var infoWindowOptions = {
-	    content: content,
-	    position: latlong
-	  };
-
-	  var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
-
-	  google.maps.event.addListener(marker, "click", function() {
-	    infoWindow.open(map, marker);
-	  });
-
 	  return marker;
 	}
 
+	//Find the marker that is currently selected in the model list of markers and toggles the infowindow
 	self.selectMarkerFromList = function() {
-		console.log("Selected");
+		var currentlySelected = self.selectedLocations()[0];
+		for (var i = 0; i < MODEL.markers.length; i++) {
+			if (currentlySelected == MODEL.markers[i].title) {
+				toggleInfoWindow(i);
+			};
+		};
+	}
+
+	//Function to the toggle the infowindow of a specific marker
+	function toggleInfoWindow(id) {
+		google.maps.event.trigger(MODEL.markers[id], 'click');
 	}
 
     /* Create other functions to communicate with Model, Observables, and APIs */
@@ -181,6 +197,12 @@ function ViewModel() {
 
 	//Initialize the map with a list of locations hardcoded in data model
 	self.initMap(MODEL.locations);
+
+	//Function to clear the search filter input box
+	self.clearSearch = function() {
+		self.searchTerm('');
+		self.updateListAndMap();
+	}
 
 }
 
