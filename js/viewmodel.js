@@ -201,6 +201,8 @@ function ViewModel() {
 	//Function to clear the search filter input box
 	self.clearSearch = function() {
 		self.searchTerm('');
+		if (openInfoWindow) openInfoWindow.close();
+		if (markerBouncing) markerBouncing.setAnimation(null);
 		self.updateListAndMap();
 	}
 
