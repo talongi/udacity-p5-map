@@ -5,7 +5,7 @@ function Model() {
 	//Hardcoded list of locations
 	self.locations = [
 	{
-		name: "Earl's Beer + Cheese",
+		name: "Earl's Beer & Cheese",
 		lat: 40.7873751,
 		lng: -73.9516333,
 		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-275-beer.png',
@@ -23,7 +23,7 @@ function Model() {
 		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-90-building.png',
 		venue_id: '4a2fc4d3f964a520da981fe3'
 	},{
-		name: "Conservatory Garden",
+		name: "Central Park - Conservatory Garden Center Fountain",
 		lat: 40.793778,
 		lng:  -73.952454,
 		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-311-flower.png',
@@ -221,7 +221,7 @@ function ViewModel() {
 	  }
 	}
 
-	//Handle JSONP request
+	//Make JSONP request to FourSquare API
 	self.getLocationData = function(locations) {
 	  for (var i=0; i<locations.length; i++) {
 		  var url = "https://api.foursquare.com/v2/venues/"+locations[i].venue_id+"?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20150909&callback=ViewModel.callback";
@@ -240,9 +240,23 @@ function ViewModel() {
 	}
 
 	self.callback = function(data) {
-	  	HTMLcontentString = "<h3>"+data.response.venue.name+"</h3>"+"<p>Rating: <strong>"+data.response.venue.rating+"</strong></p><p>Tags: <em>"+data.response.venue.tags+"</em></p>";
-	  	self.contentStrings.push(HTMLcontentString);
-	  	MODEL.infoWindows[self.contentStrings.length - 1].setContent(HTMLcontentString);
+	  	MODEL.infoWindows.forEach(function (item, index, array) {
+	  		if (item.content == data.response.venue.name) {
+	  			HTMLcontentString = "<h4>"+data.response.venue.name+
+	  								"</h4>"+"<p> FourSquare rating: <strong>"+
+	  								data.response.venue.rating+
+	  								"</strong><sup> / 10</sup></p><p><em>"+
+	  								data.response.venue.categories[0].name+"</em></p>"+
+	  								"<p>People here now: <strong>"+data.response.venue.hereNow.count+
+	  								"</strong></p>"+
+	  								"<img src='"+data.response.venue.photos.groups[0].items[0].prefix+
+	  								"150x150"+
+	  								data.response.venue.photos.groups[0].items[0].suffix+
+	  								"'</img>";
+	  			item.setContent(HTMLcontentString);
+	  		}
+	  	});
+
 	}
 
 	//Make request to get FourSquare data
