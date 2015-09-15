@@ -76,6 +76,9 @@ function ViewModel() {
     //Observable to track what location is currently selected in the list view, nothing selected by default
     self.selectedLocations = ko.observableArray();
 
+    //Observable to show an error message if Foursquare resources fail to load
+    self.showErrorMessage = ko.observable(false);
+
     //Take in the locations data object, put names into an array, push the names array into an observable array
     self.initResults = function(locations) {
 	    self.initResultsList = [];
@@ -94,24 +97,33 @@ function ViewModel() {
 	//Initialize the list with hard-coded locations
 	self.initResults(MODEL.locations);
 
+	//Function to implment a partial match filter. Each item in the results observable is checked if it contains the search query
+	//If a match is found, the results array is emptied and
+
+
 	//Checks search query against all locations and filters the list and map markers if query is matched
 	self.updateListAndMap = function() {
-		if (self.searchList.indexOf(self.searchTerm().toLowerCase()) > -1) {
-			self.results.removeAll();
-			self.results.push(self.initResultsList[self.searchList.indexOf(self.searchTerm().toLowerCase())]);
-			MODEL.markers.forEach(function (item, index, array) {
-				if (index != self.searchList.indexOf(self.searchTerm().toLowerCase())) {
-					item.setVisible(false);
+		self.searchList.forEach(function (item, index, array) {
+			if (item.indexOf(self.searchTerm().toLowerCase()) > -1) {
+				self.results.removeAll();
+				self.results.push(self.initResultsList[index]);
+
+				for (var i = 0; i < MODEL.markers.length; i++) {
+					MODEL.markers[i].setVisible(false);
 				};
-			});
-		} else if (self.searchList.indexOf(self.searchTerm().toLowerCase()) == -1) {
-			self.results(self.initResultsList.slice(0));
-			MODEL.markers.forEach(function (item, index, array) {
-				if (!item.getVisible()) {
-					item.setVisible(true);
-				};
-			});
-		};
+				MODEL.markers[index].setVisible(true);
+			};
+		});
+
+			if (self.searchTerm() == '') {
+				self.results(self.initResultsList.slice(0));
+				MODEL.markers.forEach(function (item, index, array) {
+					if (!item.getVisible()) {
+						item.setVisible(true);
+					};
+				});
+			};
+
 	}.bind(this);
 
 	//Function to clear the search filter input box
@@ -221,13 +233,18 @@ function ViewModel() {
 	  }
 	}
 
-	//Make JSONP request to FourSquare API
+	//Set timer to show error message if FourSquare resources don't load after 8 seconds.
+	self.timer = setTimeout(function() { self.showErrorMessage(true) }, 8000);
+
+	//Make request to FourSquare API using JSONP.
 	self.getLocationData = function(locations) {
 	  for (var i=0; i<locations.length; i++) {
 		  var url = "https://api.foursquare.com/v2/venues/"+locations[i].venue_id+"?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20150909&callback=ViewModel.callback";
 		  var newScriptElement = document.createElement("script");
 		  newScriptElement.setAttribute("src", url);
 		  newScriptElement.setAttribute("id", "jsonp");
+		  //Set onload attribute to check if resource loads. If onload fires, clear the timer
+		  newScriptElement.setAttribute("onload", "clearTimeout(ViewModel.timer)");
 		  var oldScriptElement = document.getElementById("jsonp");
 		  var head = document.getElementsByTagName("head")[0];
 		  if (oldScriptElement == null) {
@@ -236,7 +253,6 @@ function ViewModel() {
 		    head.replaceChild(newScriptElement, oldScriptElement);
 		  }
 	  };
-
 	}
 
 	self.callback = function(data) {
@@ -264,6 +280,7 @@ function ViewModel() {
 
 	//Initialize the map with a list of locations hardcoded in data model and foursquare data for marker window content
 	self.initMap(MODEL.locations);
+
 
 }
 
