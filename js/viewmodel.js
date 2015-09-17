@@ -34,6 +34,12 @@ function Model() {
 		lng:  -73.950662,
 		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-277-cutlery.png',
 		venue_id: '4f0f2da5e4b01660de447b3b'
+	},{
+		name: "The Guthrie Inn",
+		lat: 40.788202,
+		lng: -73.951511,
+		icon: 'lib/glyphicons_free/glyphicons/png/glyphicons-1-glass.png',
+		venue_id: '4f90a240e4b0a9b8bc756c9d'
 	}
 	];
 
@@ -73,9 +79,6 @@ function ViewModel() {
     //Observable for the search term
     self.searchTerm = ko.observable("");
 
-    //Observable to track what location is currently selected in the list view, nothing selected by default
-    self.selectedLocations = ko.observableArray();
-
     //Observable to show an error message if Foursquare resources fail to load
     self.showErrorMessage = ko.observable(false);
 
@@ -88,51 +91,50 @@ function ViewModel() {
 	    	self.initResultsList.push(item);
 	    	//Create lower case version for case insensitive search
 	    	self.searchList.push(item.toLowerCase());
-	    };
+	    }
 
 	    //Create observable array to populate locations list view
 	    self.results = ko.observableArray(self.initResultsList.slice(0));
-	}
+	};
 
 	//Initialize the list with hard-coded locations
 	self.initResults(MODEL.locations);
 
-	//Function to implment a partial match filter. Each item in the results observable is checked if it contains the search query
-	//If a match is found, the results array is emptied and
 
-
-	//Checks search query against all locations and filters the list and map markers if query is matched
+	//Checks search query against all locations and filters the list and map markers if query is contained in any of the results
 	self.updateListAndMap = function() {
 		self.searchList.forEach(function (item, index, array) {
 			if (item.indexOf(self.searchTerm().toLowerCase()) > -1) {
+				//Empties the results and adds the result that matches the query
 				self.results.removeAll();
 				self.results.push(self.initResultsList[index]);
-
+				//Loop through markers, hides the locations filtered out and sets the matched location marker to visible.
 				for (var i = 0; i < MODEL.markers.length; i++) {
 					MODEL.markers[i].setVisible(false);
 				};
 				MODEL.markers[index].setVisible(true);
-			};
-		});
+			}
+		})
 
-			if (self.searchTerm() == '') {
+			//If the filter input is empty, resets all locations to be visible
+			if (self.searchTerm() === '') {
 				self.results(self.initResultsList.slice(0));
 				MODEL.markers.forEach(function (item, index, array) {
 					if (!item.getVisible()) {
 						item.setVisible(true);
-					};
+					}
 				});
-			};
+			}
 
 	}.bind(this);
 
-	//Function to clear the search filter input box
+	//Function to reset the search filter input box, list view, and markers
 	self.clearSearch = function() {
 		self.searchTerm('');
 		if (openInfoWindow) openInfoWindow.close();
 		if (markerBouncing) markerBouncing.setAnimation(null);
 		self.updateListAndMap();
-	}
+	};
 
     /* Define and use Google Map objects here */
 
@@ -198,20 +200,19 @@ function ViewModel() {
 		  } else {
 		    markerBouncing = null;
 		  }
-		};
+		}
 
 	  return marker;
 	}
 
 	//Find the marker that is currently selected in the model list of markers and toggles the infowindow
-	self.selectMarkerFromList = function() {
-		var currentlySelected = self.selectedLocations()[0];
+	self.selectMarkerFromList = function(currentlySelected) {
 		for (var i = 0; i < MODEL.markers.length; i++) {
 			if (currentlySelected == MODEL.markers[i].title) {
 				toggleInfoWindow(i);
-			};
-		};
-	}
+			}
+		}
+	}.bind(self);
 
 	//Function to the toggle the infowindow of a specific marker
 	function toggleInfoWindow(id) {
@@ -231,10 +232,12 @@ function ViewModel() {
 	    //Add marker to data model
 	    MODEL.markers.push(marker);
 	  }
-	}
+	};
 
 	//Set timer to show error message if FourSquare resources don't load after 8 seconds.
-	self.timer = setTimeout(function() { self.showErrorMessage(true) }, 8000);
+	self.timer = setTimeout(function() {
+		self.showErrorMessage(true)
+	}, 8000);
 
 	//Make request to FourSquare API using JSONP.
 	self.getLocationData = function(locations) {
@@ -247,14 +250,15 @@ function ViewModel() {
 		  newScriptElement.setAttribute("onload", "clearTimeout(ViewModel.timer)");
 		  var oldScriptElement = document.getElementById("jsonp");
 		  var head = document.getElementsByTagName("head")[0];
-		  if (oldScriptElement == null) {
+		  if (oldScriptElement === null) {
 		    head.appendChild(newScriptElement);
 		  } else {
 		    head.replaceChild(newScriptElement, oldScriptElement);
 		  }
-	  };
-	}
+	  }
+	};
 
+	//Takes in the JSON response from the FourSquare API, constructs an HTML string, and sets it to the content of the relevant infoWindow
 	self.callback = function(data) {
 	  	MODEL.infoWindows.forEach(function (item, index, array) {
 	  		if (item.content == data.response.venue.name) {
@@ -263,7 +267,7 @@ function ViewModel() {
 	  								data.response.venue.rating+
 	  								"</strong><sup> / 10</sup></p><p><em>"+
 	  								data.response.venue.categories[0].name+"</em></p>"+
-	  								"<p>People here now: <strong>"+data.response.venue.hereNow.count+
+	  								"<p>People checked-in now: <strong>"+data.response.venue.hereNow.count+
 	  								"</strong></p>"+
 	  								"<img src='"+data.response.venue.photos.groups[0].items[0].prefix+
 	  								"150x150"+
@@ -273,7 +277,7 @@ function ViewModel() {
 	  		}
 	  	});
 
-	}
+	};
 
 	//Make request to get FourSquare data
 	self.getLocationData(MODEL.locations);

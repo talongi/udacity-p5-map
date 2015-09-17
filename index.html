@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <title>Neighborhood Map</title>
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -9,25 +10,50 @@
 </head>
 <body>
     <div class="container">
-        <h1>My Neighborhood Map</h1>
-
-        <form data-bind="submit: updateListAndMap">
-            <p>Filter: <input type="text" data-bind="textInput: searchTerm, event: { keyup: updateListAndMap }"  />
-                <button data-bind="click: clearSearch">Clear</button>
-        </form>
-
-        <h2>List View</h2>
-        <select multiple size="5" id="resultsList" data-bind="options: results, selectedOptions: selectedLocations, event: { click: selectMarkerFromList }">
-
-        </select>
-
-        <h2>Map View</h2>
-        <div id="errorMessage" data-bind="visible: showErrorMessage">
-            <strong><p>Foursquare resources failed to load :(</p>
-            <p>The site might be down, or your connection might be blocked. Because we can't reach Foursquare, only place names will show in the info windows.</p>
-            <p>Here are some <a href="http://www.wikihow.com/Fix-if-You-Can't-Access-a-Particular-Website">steps</a> you can try to fix the problem.</p></strong>
+     <div class="row">
+            <div class="col-sm-12">
+                <div id="errorMessage" data-bind="visible: showErrorMessage">
+                    <strong><p>It's taking awhile to get the Foursquare resources. They might failed to load :(</p>
+                    <p>The site might be down, or your connection might be blocked. If we can't reach Foursquare, only place names will show in the info windows.</p>
+                    <p>Here are some <a href="http://www.wikihow.com/Fix-if-You-Can't-Access-a-Particular-Website">steps</a> you can try to fix the problem.</p></strong>
+                    <p><button data-bind="click: function () { showErrorMessage(false); }" type="button">Close this message.</button></p>
+                </div>
+            </div>
         </div>
-        <div id="mapDiv"></div>
+        <div class="row" id="header">
+            <div class="col-md-12">
+                <h1>My Neighborhood Map</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12" id="mapContainer">
+                <div class="col-md-4" id="listView">
+                    <h2>Filter</h2>
+                    <form data-bind="submit: updateListAndMap">
+                        <p><input type="text" data-bind="textInput: searchTerm, event: { keyup: updateListAndMap }"  />
+                            <button data-bind="click: clearSearch">Clear</button>
+                    </form>
+                        <h2>List View</h2>
+                        <div class="list-group" id="resultsList" data-bind="foreach: results">
+                            <button type="button" class="list-group-item" data-bind="click: function () { ViewModel.selectMarkerFromList($data); }">
+                                <span data-bind="text: $data"></span>
+                            </button>
+                        </div>
+                </div>
+                <h2>Map View</h2>
+                <div id="mapDiv" class="col-md-8"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" id="footer">
+                <p>Tony Alongi, 2015</p>
+                <a href="http://talongi.flavors.me">Visit my homepage</a>
+            </div>
+        </div>
+    </div>
+
+
 
         <script src="http://maps.google.com/maps/api/js?sensor=true"></script>
         <script src="lib/knockout-3.2.0.js"></script>
