@@ -12,11 +12,11 @@
     <div class="container">
      <div class="row">
             <div class="col-sm-12">
-                <div id="errorMessage" data-bind="visible: showErrorMessage">
-                    <strong><p>It's taking awhile to get the Foursquare resources. They might failed to load :(</p>
+                <div class="hidden" id="errorMessage" data-bind="attr: { class: showErrorMessage }">
+                    <strong><p>It's taking awhile to get the Foursquare resources. They might fail to load :(</p>
                     <p>The site might be down, or your connection might be blocked. If we can't reach Foursquare, only place names will show in the info windows.</p>
                     <p>Here are some <a href="http://www.wikihow.com/Fix-if-You-Can't-Access-a-Particular-Website">steps</a> you can try to fix the problem.</p></strong>
-                    <p><button data-bind="click: function () { showErrorMessage(false); }" type="button">Close this message.</button></p>
+                    <p><button data-bind="click: function () { showErrorMessage('hidden'); }" type="button">Close this message.</button></p>
                 </div>
             </div>
         </div>
@@ -27,22 +27,24 @@
         </div>
 
         <div class="row">
-            <div class="col-md-12" id="mapContainer">
+            <div class="col-md-12" id="bodyContainer">
                 <div class="col-md-4" id="listView">
                     <h2>Filter</h2>
                     <form data-bind="submit: updateListAndMap">
-                        <p><input type="text" data-bind="textInput: searchTerm, event: { keyup: updateListAndMap }"  />
-                            <button data-bind="click: clearSearch">Clear</button>
+                        <input type="text" data-bind="textInput: searchTerm, event: { keyup: updateListAndMap }"  />
+                            <button data-bind="click: clearSearch">Reset</button>
                     </form>
-                        <h2>List View</h2>
+                        <h2>Locations</h2>
                         <div class="list-group" id="resultsList" data-bind="foreach: results">
-                            <button type="button" class="list-group-item" data-bind="click: function () { ViewModel.selectMarkerFromList($data); }">
-                                <span data-bind="text: $data"></span>
-                            </button>
+                            <a href="#" class="list-group-item col-xs-6 col-md-12" data-bind="click: $parent.selectMarkerFromList">
+                                <p class="listItem" data-bind="text: $data"></p>
+                            </a>
                         </div>
                 </div>
-                <h2>Map View</h2>
-                <div id="mapDiv" class="col-md-8"></div>
+
+
+                    <div id="mapDiv" class="col-md-8"></div>
+
             </div>
         </div>
         <div class="row">

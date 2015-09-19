@@ -54,7 +54,7 @@ function Model() {
 
 }
 
-var MODEL = new Model();
+var model = new Model();
 
 function ViewModel() {
 
@@ -79,8 +79,8 @@ function ViewModel() {
     //Observable for the search term
     self.searchTerm = ko.observable("");
 
-    //Observable to show an error message if Foursquare resources fail to load
-    self.showErrorMessage = ko.observable(false);
+    //Observable to show an error message if Foursquare resources fail to load. Sets the CSS class to hidden by default.
+    self.showErrorMessage = ko.observable("hidden");
 
     //Take in the locations data object, put names into an array, push the names array into an observable array
     self.initResults = function(locations) {
@@ -98,28 +98,28 @@ function ViewModel() {
 	};
 
 	//Initialize the list with hard-coded locations
-	self.initResults(MODEL.locations);
+	self.initResults(model.locations);
 
 
 	//Checks search query against all locations and filters the list and map markers if query is contained in any of the results
 	self.updateListAndMap = function() {
+		//Empties the results and adds the result that matches the query
+		self.results.removeAll();
 		self.searchList.forEach(function (item, index, array) {
 			if (item.indexOf(self.searchTerm().toLowerCase()) > -1) {
-				//Empties the results and adds the result that matches the query
-				self.results.removeAll();
 				self.results.push(self.initResultsList[index]);
 				//Loop through markers, hides the locations filtered out and sets the matched location marker to visible.
-				for (var i = 0; i < MODEL.markers.length; i++) {
-					MODEL.markers[i].setVisible(false);
+				for (var i = 0; i < model.markers.length; i++) {
+					model.markers[i].setVisible(false);
 				};
-				MODEL.markers[index].setVisible(true);
+				model.markers[index].setVisible(true);
 			}
 		})
 
 			//If the filter input is empty, resets all locations to be visible
 			if (self.searchTerm() === '') {
 				self.results(self.initResultsList.slice(0));
-				MODEL.markers.forEach(function (item, index, array) {
+				model.markers.forEach(function (item, index, array) {
 					if (!item.getVisible()) {
 						item.setVisible(true);
 					}
@@ -134,6 +134,7 @@ function ViewModel() {
 		if (openInfoWindow) openInfoWindow.close();
 		if (markerBouncing) markerBouncing.setAnimation(null);
 		self.updateListAndMap();
+		self.map.panTo(self.homelatlng);
 	};
 
     /* Define and use Google Map objects here */
@@ -155,10 +156,10 @@ function ViewModel() {
 	}
 
 	//Set the starting coordinates to the home location in the data model
-    self.latlng = new google.maps.LatLng(MODEL.home[0],MODEL.home[1]);
+    self.homelatlng = new google.maps.LatLng(model.home[0],model.home[1]);
 
 	//Intialize the map using the home location Google maps latlan object
-	self.map = showMap(self.latlng);
+	self.map = showMap(self.homelatlng);
 
 	//This function is used to create new map markers
 	function addMarker(map, latlong, title, content, icon) {
@@ -180,13 +181,15 @@ function ViewModel() {
 	  };
 
 	  var infoWindow = new google.maps.InfoWindow(infoWindowOptions);
-	  MODEL.infoWindows.push(infoWindow);
+	  model.infoWindows.push(infoWindow);
 
 	  google.maps.event.addListener(marker, "click", function() {
 	    if (openInfoWindow) openInfoWindow.close();
 	    openInfoWindow = infoWindow;
 	    infoWindow.open(map, marker);
 	  });
+
+	  google.maps.event.addListener(infoWindow, "closeclick", toggleBounce);
 
 		 //Function to toggle the bounce anitmation of marker on click
 
@@ -207,16 +210,16 @@ function ViewModel() {
 
 	//Find the marker that is currently selected in the model list of markers and toggles the infowindow
 	self.selectMarkerFromList = function(currentlySelected) {
-		for (var i = 0; i < MODEL.markers.length; i++) {
-			if (currentlySelected == MODEL.markers[i].title) {
+		for (var i = 0; i < model.markers.length; i++) {
+			if (currentlySelected == model.markers[i].title) {
 				toggleInfoWindow(i);
 			}
 		}
-	}.bind(self);
+	}.bind(this);
 
 	//Function to the toggle the infowindow of a specific marker
 	function toggleInfoWindow(id) {
-		google.maps.event.trigger(MODEL.markers[id], 'click');
+		google.maps.event.trigger(model.markers[id], 'click');
 	}
 
     /* Create other functions to communicate with Model, Observables, and APIs */
@@ -230,19 +233,25 @@ function ViewModel() {
 	    //Create and add markers to map
 	    var marker = addMarker(self.map, googleLatAndLong, location.name, windowContent, location.icon);
 	    //Add marker to data model
-	    MODEL.markers.push(marker);
+	    model.markers.push(marker);
 	  }
 	};
 
 	//Set timer to show error message if FourSquare resources don't load after 8 seconds.
 	self.timer = setTimeout(function() {
-		self.showErrorMessage(true)
+		self.showErrorMessage("");
 	}, 8000);
 
 	//Make request to FourSquare API using JSONP.
 	self.getLocationData = function(locations) {
 	  for (var i=0; i<locations.length; i++) {
-		  var url = "https://api.foursquare.com/v2/venues/"+locations[i].venue_id+"?client_id="+CLIENT_ID+"&client_secret="+CLIENT_SECRET+"&v=20150909&callback=ViewModel.callback";
+		  var url = "https://api.foursquare.com/v2/venues/"+
+		  			locations[i].venue_id+
+		  			"?client_id="+
+		  			CLIENT_ID+
+		  			"&client_secret="+
+		  			CLIENT_SECRET+
+		  			"&v=20150909&callback=ViewModel.callback";
 		  var newScriptElement = document.createElement("script");
 		  newScriptElement.setAttribute("src", url);
 		  newScriptElement.setAttribute("id", "jsonp");
@@ -260,17 +269,22 @@ function ViewModel() {
 
 	//Takes in the JSON response from the FourSquare API, constructs an HTML string, and sets it to the content of the relevant infoWindow
 	self.callback = function(data) {
-	  	MODEL.infoWindows.forEach(function (item, index, array) {
+	  	model.infoWindows.forEach(function (item, index, array) {
 	  		if (item.content == data.response.venue.name) {
-	  			HTMLcontentString = "<h4>"+data.response.venue.name+
-	  								"</h4>"+"<p> FourSquare rating: <strong>"+
+	  			HTMLcontentString = "<p><strong><a class='place-name' href='"+
+	  								data.response.venue.canonicalUrl+"'>"+
+	  								data.response.venue.name+
+	  								"</a></strong></p>"+
+	  								"<p>"+data.response.venue.location.address+
+	  								"</p><p><span class='place-rating'><strong>"+
 	  								data.response.venue.rating+
-	  								"</strong><sup> / 10</sup></p><p><em>"+
-	  								data.response.venue.categories[0].name+"</em></p>"+
-	  								"<p>People checked-in now: <strong>"+data.response.venue.hereNow.count+
-	  								"</strong></p>"+
+	  								"</strong><sup> / 10</sup></span>"+
+	  								"<span class='place-category'>"+
+	  								data.response.venue.categories[0].name+
+	  								"</p><p>"+data.response.venue.hereNow.count+
+	  								" people checked-in now</p>"+
 	  								"<img src='"+data.response.venue.photos.groups[0].items[0].prefix+
-	  								"150x150"+
+	  								"80x80"+
 	  								data.response.venue.photos.groups[0].items[0].suffix+
 	  								"'</img>";
 	  			item.setContent(HTMLcontentString);
@@ -280,10 +294,10 @@ function ViewModel() {
 	};
 
 	//Make request to get FourSquare data
-	self.getLocationData(MODEL.locations);
+	self.getLocationData(model.locations);
 
 	//Initialize the map with a list of locations hardcoded in data model and foursquare data for marker window content
-	self.initMap(MODEL.locations);
+	self.initMap(model.locations);
 
 
 }

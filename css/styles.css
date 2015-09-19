@@ -3,10 +3,45 @@ body {
 	color: #252525;
 }
 
+h1 {
+	font-size: 4em;
+}
+
+h2 {
+	font-size: 1.8em;
+}
+
 .container {
 	height: 100%;
 }
 
+.hidden {
+	display: none;
+}
+
+.place-name{
+	font-size: 1.2em;
+}
+
+.place-rating {
+	color: white;
+	background-color: #223fdb;
+	padding: 5px;
+	height: 10%;
+	width: 50px;
+	text-align: center;
+	border-radius: 10%;
+}
+
+.place-category {
+	color: white;
+	background-color: #5464b9;
+	margin-left: 3px;
+	padding: 5px;
+	height: 10%;
+	text-align: center;
+	border-radius: 10%;
+}
 
 #resultsList {
 	margin-bottom: 10px;
@@ -26,21 +61,51 @@ body {
 	border-style: solid;
 	border-width: thick;
 	border-color: orange;
-	background-color: #FFFBD0
+	background-color: #fffbd0
 }
 
 #header {
-	background-color: lightblue;
-	color: #FFF;
-	border-style: solid;
-	border-width: 0.25em;
-	border-color: black;
+	color: #252525;
+	font-family: Garamond, sans-serif;
 	text-align: center;
-
 }
 
 #footer {
 	text-align: center;
 	margin-top: 50px;
+	padding-bottom: 50px;
 }
+
+ @media only screen and (max-width : 480px) {
+ 	h1 {
+ 		font-size: 1.8em;
+ 	}
+
+ 	h2 {
+ 		font-size: 1.2em;
+ 		margin-top: 20px;
+ 	}
+
+ 	p {
+ 		font-size: 1em;
+ 	}
+
+ 	.listItem {
+ 		font-size: 0.7em;
+ 		line-height: 95%;
+ 		margin-bottom: 0px;
+ 	}
+
+ 	.list-group-item {
+ 		padding-top: 5px;
+ 		padding-bottom: 5px;
+ 	}
+
+ 	#mapDiv {
+ 		clear: left;
+ 		margin-top: 100px;
+ 	}
+
+
+ }
 
