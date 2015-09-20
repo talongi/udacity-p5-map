@@ -11,6 +11,10 @@ h2 {
 	font-size: 1.8em;
 }
 
+input {
+	width: 80%;
+}
+
 .container {
 	height: 100%;
 }
@@ -72,22 +76,27 @@ h2 {
 
 #footer {
 	text-align: center;
-	margin-top: 50px;
-	padding-bottom: 50px;
+	margin-top: 20px;
+	padding-bottom: 20px;
 }
 
  @media only screen and (max-width : 480px) {
  	h1 {
- 		font-size: 1.8em;
+ 		font-size: 1.3em;
  	}
 
  	h2 {
- 		font-size: 1.2em;
- 		margin-top: 20px;
+ 		font-size: 1em;
+ 		margin-top: 10px;
  	}
 
  	p {
  		font-size: 1em;
+ 	}
+
+ 	input {
+ 		margin-bottom: 10px;
+ 		width: 70%;
  	}
 
  	.listItem {
@@ -101,10 +110,15 @@ h2 {
  		padding-bottom: 5px;
  	}
 
+ 	.headings {
+ 		display: none;
+ 	}
+
  	#mapDiv {
  		clear: left;
- 		margin-top: 100px;
+ 		margin-top: 90px;
  	}
+
 
 
  }
