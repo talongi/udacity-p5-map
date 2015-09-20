@@ -105,13 +105,14 @@ function ViewModel() {
 	self.updateListAndMap = function() {
 		//Empties the results and adds the result that matches the query
 		self.results.removeAll();
+		//Loop through markers, hides the locations filtered out and sets the matched location marker to visible.
+		for (var i = 0; i < model.markers.length; i++) {
+			model.markers[i].setVisible(false);
+		};
 		self.searchList.forEach(function (item, index, array) {
 			if (item.indexOf(self.searchTerm().toLowerCase()) > -1) {
 				self.results.push(self.initResultsList[index]);
-				//Loop through markers, hides the locations filtered out and sets the matched location marker to visible.
-				for (var i = 0; i < model.markers.length; i++) {
-					model.markers[i].setVisible(false);
-				};
+
 				model.markers[index].setVisible(true);
 			}
 		})
