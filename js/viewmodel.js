@@ -143,6 +143,8 @@ function ViewModel() {
     //This function takes in coordinates, converts coordinates to a google map lat and long object, sets the map options, creates a map object, and displays the map in a div on the page.
 	function showMap(latlng) {
 	  var googleLatAndLong = latlng;
+	  var bounds = new google.maps.LatLngBounds();
+	  var latLngBounds = bounds.extend(googleLatAndLong);
 
 	  var mapOptions = {
 	    zoom: 15,
@@ -153,6 +155,12 @@ function ViewModel() {
 
 	  var mapDiv = document.getElementById("mapDiv");
 	  var map = new google.maps.Map(mapDiv, mapOptions);
+	  map.fitBounds(latLngBounds);
+	  //Fix zoom after fitBounds
+	  var listener = google.maps.event.addListener(map, "idle", function() {
+  		if (map.getZoom() > 15) map.setZoom(15);
+  		google.maps.event.removeListener(listener);
+	  });
 	  return map;
 	}
 
