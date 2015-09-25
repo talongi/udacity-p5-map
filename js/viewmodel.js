@@ -108,14 +108,14 @@ function ViewModel() {
 		//Loop through markers, hides the locations filtered out and sets the matched location marker to visible.
 		for (var i = 0; i < model.markers.length; i++) {
 			model.markers[i].setVisible(false);
-		};
+		}
 		self.searchList.forEach(function (item, index, array) {
 			if (item.indexOf(self.searchTerm().toLowerCase()) > -1) {
 				self.results.push(self.initResultsList[index]);
 
 				model.markers[index].setVisible(true);
 			}
-		})
+		});
 
 			//If the filter input is empty, resets all locations to be visible
 			if (self.searchTerm() === '') {
@@ -136,11 +136,13 @@ function ViewModel() {
 		if (markerBouncing) markerBouncing.setAnimation(null);
 		self.updateListAndMap();
 		self.map.panTo(self.homelatlng);
+		self.map.setZoom(15);
 	};
 
     /* Define and use Google Map objects here */
 
-    //This function takes in coordinates, converts coordinates to a google map lat and long object, sets the map options, creates a map object, and displays the map in a div on the page.
+    // This function takes in coordinates, converts coordinates to a google map lat and long object, sets the map options,
+    // creates a map object, sets the bounds of the map, and displays the map in a div on the page.
 	function showMap(latlng) {
 	  var googleLatAndLong = latlng;
 	  var bounds = new google.maps.LatLngBounds();
@@ -156,11 +158,13 @@ function ViewModel() {
 	  var mapDiv = document.getElementById("mapDiv");
 	  var map = new google.maps.Map(mapDiv, mapOptions);
 	  map.fitBounds(latLngBounds);
+
 	  //Fix zoom after fitBounds
 	  var listener = google.maps.event.addListener(map, "idle", function() {
   		if (map.getZoom() > 15) map.setZoom(15);
   		google.maps.event.removeListener(listener);
 	  });
+
 	  return map;
 	}
 
