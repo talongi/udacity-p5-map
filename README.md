@@ -7,7 +7,7 @@ This project required creating a single page application using the Knockout fram
 
 ##Steps to launch:
 
-Clone the repo to your local machine. Open index.html in your browser and the app should load.
+View the project on github pages: [My Neighborhood Map](http://talongi.github.io/udacity-p5-map/)
 
 ##Resources used:
 
